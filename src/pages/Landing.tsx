@@ -78,7 +78,7 @@ export const Landing = () => {
       <div className="Landing-container">
         <Heading1>Connect with a wallet</Heading1>
 
-        <div className="WalletButtons-container">
+        <div className="WalletButtons-container" style={{justifyContent: "center"}}>
           {Object.keys(wallets).map((walletKey) => {
             const wallet = wallets[walletKey];
 

@@ -35,12 +35,12 @@ export const networkConfig: NetworkConfig = {
     stellarExpertLiquidityPoolUrl: `${STELLAR_EXPERT_URL}/testnet/liquidity-pool/`,
   },
   public: {
-    url: "https://horizon.stellar.org",
-    network: StellarSdk.Networks.PUBLIC,
-    stellarExpertTxUrl: `${STELLAR_EXPERT_URL}/public/tx/`,
-    stellarExpertAccountUrl: `${STELLAR_EXPERT_URL}/public/account/`,
-    stellarExpertAssetUrl: `${STELLAR_EXPERT_URL}/public/asset/`,
-    stellarExpertLiquidityPoolUrl: `${STELLAR_EXPERT_URL}/public/liquidity-pool/`,
+    url: "https://horizon-futurenet.stellar.org",
+    network: StellarSdk.Networks.TESTNET,
+    stellarExpertTxUrl: `${STELLAR_EXPERT_URL}/futurenet/tx/`,
+    stellarExpertAccountUrl: `${STELLAR_EXPERT_URL}/futurenet/account/`,
+    stellarExpertAssetUrl: `${STELLAR_EXPERT_URL}/futurenet/asset/`,
+    stellarExpertLiquidityPoolUrl: `${STELLAR_EXPERT_URL}/futurenet/liquidity-pool/`,
   },
 };
 

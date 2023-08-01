@@ -15,7 +15,7 @@ export const NotFound = () => {
         <Eyebrow>Error 404</Eyebrow>
         <Heading1>Sorry, that page couldn’t be found.</Heading1>
         <p>Have you tried turning it off and on again?</p>
-        <Button onClick={handleBack}>Back to Account Viewer</Button>
+        <Button onClick={handleBack}>Back to Token Swap</Button>
       </div>
     </Layout.Inset>
   );

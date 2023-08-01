@@ -172,7 +172,7 @@ export const SignInSecretKeyForm = ({ onClose }: ModalPageProps) => {
                 <li>
                   <strong>
                     Note: Connecting by entering a secret key may be deprecated
-                    in a future version of the Account Viewer.
+                    in a future version of the Token Swap.
                   </strong>
                 </li>
               </ul>

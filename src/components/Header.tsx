@@ -44,7 +44,7 @@ export const Header = () => {
 
   return (
     <Layout.Header
-      projectTitle="Account Viewer"
+      projectTitle="Token Swap"
       projectLink="https://stellar.org"
       hasDarkModeToggle
       onDarkModeToggleEnd={trackThemeChange}

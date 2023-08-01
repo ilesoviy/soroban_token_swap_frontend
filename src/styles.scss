@@ -57,24 +57,24 @@
     }
   }
 
-  .WalletButtons-container {
-    width: 100%;
-    max-width: 590px;
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    padding: 3rem 0;
+  // .WalletButtons-container {
+  //   width: 100%;
+  //   max-width: 590px;
+  //   display: flex;
+  //   flex-direction: row;
+  //   flex-wrap: wrap;
+  //   justify-content: space-between;
+  //   padding: 3rem 0;
 
-    & > div {
-      margin-bottom: 1.5rem;
-      width: 100%;
+  //   & > div {
+  //     margin-bottom: 1.5rem;
+  //     width: 100%;
 
-      @media (min-width: 700px) {
-        width: calc(50% - 1.75rem);
-      }
-    }
-  }
+  //     @media (min-width: 700px) {
+  //       width: calc(50% - 1.75rem);
+  //     }
+  //   }
+  // }
 
   .Layout {
     &__header {
@@ -99,6 +99,10 @@
           order: 1;
         }
       }
+    }
+
+    &__content {
+      display: block;
     }
 
     &__inset {
@@ -274,5 +278,13 @@
     .Eyebrow {
       color: var(--pal-brand-primary);
     }
+  }
+
+  label {
+    display: inline-block;
+  }
+
+  button, input, optgroup, select, textarea {
+    margin: 0 1rem 0 1rem;
   }
 }

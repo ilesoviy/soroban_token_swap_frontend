@@ -7,7 +7,8 @@ import { Network } from "components/Network";
 import { PrivateRoute } from "components/PrivateRoute";
 import { Header } from "components/Header";
 
-import { Dashboard } from "pages/Dashboard";
+// import { Dashboard } from "pages/Dashboard";
+import Main from "pages/Main";
 import { Landing } from "pages/Landing";
 import { NotFound } from "pages/NotFound";
 
@@ -26,16 +27,17 @@ export const App = () => (
               path="/dashboard"
               element={
                 <PrivateRoute>
-                  <Dashboard />
+                  {/* <Dashboard /> */}
+                  <Main />
                 </PrivateRoute>
               }
             />
 
-            <Route element={<NotFound />} />
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </Layout.Content>
 
-        <Layout.Footer gitHubLink="https://github.com/stellar/account-viewer-v2" />
+        {/* <Layout.Footer gitHubLink="https://github.com/stellar/account-viewer-v2" /> */}
       </Network>
     </Router>
   </Provider>
