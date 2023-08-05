@@ -1,6 +1,8 @@
 module.exports = {
   extends: ["@stellar/eslint-config", "plugin:import/typescript"],
   rules: {
+    'no-await-in-loop': 'off',
+    'max-len': 'off', // disables line length check
     "no-console": "off",
     "import/no-unresolved": "off",
     "react/jsx-filename-extension": ["error", { extensions: [".tsx", ".jsx"] }],
