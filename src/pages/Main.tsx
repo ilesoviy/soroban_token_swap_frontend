@@ -1,9 +1,8 @@
 import { useState } from "react";
 import './Main.css';
 // import { Connectivity, EditOfferInput } from './connectivity';
-import * as tokenSwap from "token_swap";
-
-import * as SorobanClient from "soroban-client";
+import * as tswap from "token-swap";
+import * as StellarSdk from "@stellar/stellar-sdk";
 
 // import freighter from "@stellar/freighter-api";
 
@@ -16,42 +15,45 @@ import * as SorobanClient from "soroban-client";
 // } = freighter;
 
 const log = console.log;
-
-const server = new SorobanClient.Server(
+const rpc = "https://rpc-futurenet.stellar.org";
+const CONTRACT_ID = tswap.networks.futurenet.contractId;
+const tokenSwap = new tswap.Contract({
+    contractId: CONTRACT_ID,
+    networkPassphrase: tswap.networks.futurenet.networkPassphrase,
+    rpcUrl: rpc,
+});
+const server = new StellarSdk.SorobanRpc.Server(
     // 'http://localhost:8000/soroban/rpc', 
     // { allowHttp: true },
-    
-    'https://rpc-futurenet.stellar.org',
+    rpc,
 );
 
-const adminSecretKey = 'SBAIJKOJ4K6X4MUAQU7SM3VOKQ3EF5OGJFBJTKDKHEMM4ONXBU6PS7AC';
-const offerorSecretKey = 'SBRXI5YJVJPKGXKTW5VSHY6XSHDM6RKKTNSEVYZ72EY6HA7LMPR46IEK';
-const acceptorSecretKey = 'SBE7L2W7VWXVS3Q5RXW4B4U3KLDBQRMG7CNDQLNCRG334SWNJTULXEF4';
-const feeSecretKey = 'SAZ5QSUCVJ4RSXETP4GTQB2VRVDKNSSNR6J5GMIKLYDLOGV574IDMIBJ';
+const adminSecretKey = 'SBUXJ2P2KBPCTRZELFH6RY3DTR4KR6KRRXCJLC5QQOYGU26DGGTHAWBB';
+const offerorSecretKey = 'SAAHOJHIKMKYBS6ISCNQIEVCFBGV2KRV3PKIZUW72DLJTFLS2QOYY7WY';
+const acceptorSecretKey = 'SCXSDHS62AGA43FW65UHOHB32S7AD4DEC2RHRSQ7A55MLKSRYTZVXGC4';
+const feeSecretKey = 'SBWY3W7P365GIACG2MX3LD5OKU6UY3VEGPDOZWEFTIXKA4IKT6ZQEU64';
 
-const adminKeypair = SorobanClient.Keypair.fromSecret(adminSecretKey);
-const offerorKeypair = SorobanClient.Keypair.fromSecret(offerorSecretKey);
-const acceptorKeypair = SorobanClient.Keypair.fromSecret(acceptorSecretKey);
-const feeKeypair = SorobanClient.Keypair.fromSecret(feeSecretKey);
+const adminKeypair = StellarSdk.Keypair.fromSecret(adminSecretKey);
+const offerorKeypair = StellarSdk.Keypair.fromSecret(offerorSecretKey);
+const acceptorKeypair = StellarSdk.Keypair.fromSecret(acceptorSecretKey);
+const feeKeypair = StellarSdk.Keypair.fromSecret(feeSecretKey);
 
 
-async function executeTransaction(accKeypair: SorobanClient.Keypair, operation: SorobanClient.xdr.Operation): Promise<number> {
+async function executeTransaction(accKeypair: StellarSdk.Keypair, operation: StellarSdk.xdr.Operation<StellarSdk.Operation.InvokeHostFunction>): Promise<number> {
     const sourceAcc = await server.getAccount(accKeypair.publicKey());
-    const defFee = '100';
-
-    const transaction0 = new SorobanClient.TransactionBuilder(sourceAcc, {
-            fee: defFee, 
-            networkPassphrase: /* SorobanClient.Networks.STANDALONE */ SorobanClient.Networks.FUTURENET,
-        }).addOperation(operation)
-        .setTimeout(30)
+    
+    const transaction0 = new StellarSdk.TransactionBuilder(sourceAcc, {
+        fee: StellarSdk.BASE_FEE,
+        networkPassphrase: /* SorobanClient.Networks.STANDALONE */ StellarSdk.Networks.FUTURENET,
+    }).addOperation(operation)
+        .addMemo(StellarSdk.Memo.text("Testing"))
+        .setTimeout(180)
         .build();
 
     const transaction = await server.prepareTransaction(transaction0);
     transaction.sign(accKeypair);
-
     try {
         const response = await server.sendTransaction(transaction);
-        
         console.log('Sent! Transaction Hash:', response.hash);
         // Poll this until the status is not "pending"
         if (response.status !== "PENDING") {
@@ -89,7 +91,7 @@ async function executeTransaction(accKeypair: SorobanClient.Keypair, operation: 
 
 async function checkError() {
     try {
-        const errorCode = await tokenSwap.get_error();
+        const errorCode = await tokenSwap.getError();
         console.log("errorCode:", errorCode);
     } catch (err) {
         console.error(err);
@@ -98,14 +100,14 @@ async function checkError() {
 
 function Main() {
     const [fee, setFee] = useState(0.25);
-    const [feeWallet, setFeeWallet] = useState("GBNJ6W2OWIYY4IVQGH4KWZUG5UQGWK2GZGPV43HQNSB6BBSJDLKD76AV");
+    const [feeWallet, setFeeWallet] = useState("GDORZQZP6XJ7JHHZW6PJNTR7LBFNT32LMY7XJ6TLVFFJD6HIKPFYCPTD");
     const [tokenId, setTokenId] = useState("");
 
-    const [offeredToken, setOfferedToken] = useState("CDKGS63OYSMC5A4VWTYZMIVNMODO33WD7HS2VSLC54A3RE7BP7GX2LOM");
-    const [requestedToken, setRequestedToken] = useState("CBM474T33NFAPHVEFL2C5YP7LNYAAUKK7KUO423BUHWEVUUAYNVNU7SO");
+    const [offeredToken, setOfferedToken] = useState("CDJ5OIGTEWQEZFNAQSGWF77JLY76SGEGEPZ7Z5KTNIDGKWKJMUDHF4JB");
+    const [requestedToken, setRequestedToken] = useState("CCFAFZ4HAZOYIIM4EJHMNYBTJEIVJP22ZX5KBD52BK2OH7KJEQFA4RP2");
     const [offeredTokenAmount, setOfferedTokenAmount] = useState(5000000);
     const [requestedTokenAmount, setRequestedTokenAmount] = useState(500000);
-    const [minRequestedTokenAmount, 
+    const [minRequestedTokenAmount,
         setMinRequestedTokenAmount] = useState(100000);
 
     const [offerId, setOfferId] = useState(0);
@@ -121,7 +123,7 @@ function Main() {
 
             <h3> Admin Side </h3>
             <label htmlFor="">Fee:</label>
-            <input type="text" value={fee} style={{width: '20%'}} onChange={(e) => {
+            <input type="text" value={fee} style={{ width: '20%' }} onChange={(e) => {
                 const value = e.target.value;
                 if (value) {
                     setFee(parseFloat(value));
@@ -129,46 +131,48 @@ function Main() {
             }} />
             <label htmlFor="">%</label>
             <label htmlFor="">FeeWallet:</label>
-            <input type="text" value={feeWallet} style={{width: '50%'}} onChange={(e) => {
+            <input type="text" value={feeWallet} style={{ width: '50%' }} onChange={(e) => {
                 const value = e.target.value;
                 if (value) {
                     setFeeWallet(value.toString());
                 }
             }} />
             <button onClick={async () => {
-                const contract = new SorobanClient.Contract(tokenSwap.CONTRACT_ID);
-
+                const contract = new StellarSdk.Contract(CONTRACT_ID);
+                console.log(`[DAVID] ${feeKeypair.xdrPublicKey()}`);
                 const res = await executeTransaction(adminKeypair,
-                    contract.call("set_fee", 
-                        SorobanClient.xdr.ScVal.scvU32(fee * 100),
-                        SorobanClient.xdr.ScVal.scvAddress(SorobanClient.xdr.ScAddress.scAddressTypeAccount(feeKeypair.xdrPublicKey())),
-                ));
+                    contract.call("set_fee",
+                        StellarSdk.xdr.ScVal.scvU32(fee * 100),
+                        // StellarSdk.xdr.ScVal.scvAddress(StellarSdk.Address.fromString("GDORZQZP6XJ7JHHZW6PJNTR7LBFNT32LMY7XJ6TLVFFJD6HIKPFYCPTD").toScAddress()),
+                        StellarSdk.Address.fromString("GDORZQZP6XJ7JHHZW6PJNTR7LBFNT32LMY7XJ6TLVFFJD6HIKPFYCPTD").toScVal(),
+                        // StellarSdk.xdr.ScVal.scvAddress(SorobanClient.xdr.ScAddress.scAddressTypeAccount(feeKeypair.xdrPublicKey())),
+                    ));
                 console.log('result:', res);
             }}> Set Fee </button>
             <br></br>
             <label htmlFor="">TokenId:</label>
-            <input type="text" value={tokenId} style={{width: '50%'}} onChange={(e) => {
+            <input type="text" value={tokenId} style={{ width: '50%' }} onChange={(e) => {
                 const value = e.target.value;
                 if (value) {
                     setTokenId(value.toString());
                 }
             }} />
             <button onClick={async () => {
-                const contract = new SorobanClient.Contract(tokenSwap.CONTRACT_ID);
+                const contract = new StellarSdk.Contract(CONTRACT_ID);
 
-                const res = await executeTransaction(adminKeypair, 
-                    contract.call('allow_token', 
-                        SorobanClient.xdr.ScVal.scvAddress(SorobanClient.Address.fromString(tokenId).toScAddress()),
-                ));
+                const res = await executeTransaction(adminKeypair,
+                    contract.call('allow_token',
+                        new StellarSdk.Address(tokenId).toScVal(),
+                    ));
                 console.log('result:', res);
             }}> Allow Token </button>
             <button onClick={async () => {
-                const contract = new SorobanClient.Contract(tokenSwap.CONTRACT_ID);
+                const contract = new StellarSdk.Contract(CONTRACT_ID);
 
-                const res = await executeTransaction(adminKeypair, 
-                    contract.call('disallow_token', 
-                        SorobanClient.xdr.ScVal.scvAddress(SorobanClient.Address.fromString(tokenId).toScAddress()),
-                ));
+                const res = await executeTransaction(adminKeypair,
+                    contract.call('disallow_token',
+                        StellarSdk.xdr.ScVal.scvAddress(StellarSdk.Address.fromString(tokenId).toScAddress()),
+                    ));
                 console.log('result:', res);
             }}> DisAllow Token</button>
 
@@ -178,14 +182,14 @@ function Main() {
 
             <h3>  User Side (Offeror) </h3>
             <label htmlFor="">Offered TokenId:  </label>
-            <input type="text" value={offeredToken} style={{width: '50%'}} onChange={(e) => {
+            <input type="text" value={offeredToken} style={{ width: '50%' }} onChange={(e) => {
                 const value = e.target.value;
                 if (value) {
                     setOfferedToken(value.toString());
                 }
             }} /> <br></br>
             <label htmlFor="">Requested TokenId:  </label>
-            <input type="text" value={requestedToken} style={{width: '50%'}} onChange={(e) => {
+            <input type="text" value={requestedToken} style={{ width: '50%' }} onChange={(e) => {
                 const value = e.target.value;
                 if (value) {
                     setRequestedToken(value.toString());
@@ -241,30 +245,30 @@ function Main() {
                 //     console.error(err);
                 // }
 
-                const contract = new SorobanClient.Contract(tokenSwap.CONTRACT_ID);
-                const res = await executeTransaction(offerorKeypair, 
-                    contract.call('create_offer', 
-                        SorobanClient.xdr.ScVal.scvAddress(SorobanClient.xdr.ScAddress.scAddressTypeAccount(offerorKeypair.xdrPublicKey())),
-                        SorobanClient.xdr.ScVal.scvAddress(SorobanClient.Address.fromString(offeredToken).toScAddress()),
-                        SorobanClient.xdr.ScVal.scvAddress(SorobanClient.Address.fromString(requestedToken).toScAddress()),
-                        SorobanClient.xdr.ScVal.scvU32(/* Date.now() */ 1000),
-                        SorobanClient.xdr.ScVal.scvU64(new SorobanClient.xdr.Uint64(offeredTokenAmount)),
-                        SorobanClient.xdr.ScVal.scvU64(new SorobanClient.xdr.Uint64(requestedTokenAmount)),
-                        SorobanClient.xdr.ScVal.scvU64(new SorobanClient.xdr.Uint64(minRequestedTokenAmount)),
+                const contract = new StellarSdk.Contract(CONTRACT_ID);
+                const res = await executeTransaction(offerorKeypair,
+                    contract.call('create_offer',
+                        StellarSdk.xdr.ScVal.scvAddress(StellarSdk.xdr.ScAddress.scAddressTypeAccount(offerorKeypair.xdrPublicKey())),
+                        StellarSdk.xdr.ScVal.scvAddress(StellarSdk.Address.fromString(offeredToken).toScAddress()),
+                        StellarSdk.xdr.ScVal.scvAddress(StellarSdk.Address.fromString(requestedToken).toScAddress()),
+                        StellarSdk.xdr.ScVal.scvU32(/* Date.now() */ 1000),
+                        StellarSdk.xdr.ScVal.scvU64(new StellarSdk.xdr.Uint64(offeredTokenAmount)),
+                        StellarSdk.xdr.ScVal.scvU64(new StellarSdk.xdr.Uint64(requestedTokenAmount)),
+                        StellarSdk.xdr.ScVal.scvU64(new StellarSdk.xdr.Uint64(minRequestedTokenAmount)),
                     ),
                 );
                 console.log('result:', res);
 
                 if (res === 0) {
                     try {
-                        const offerCount = await tokenSwap.count_offers();
+                        const offerCount = (await tokenSwap.countOffers()).result;
                         const newOfferId = offerCount - 1;
                         setOfferId(newOfferId);
                         console.log("offerId: ", newOfferId);
                     } catch (err) {
                         console.error(err);
                     }
-                } else  {
+                } else {
                     checkError();
                 }
             }}>
@@ -273,7 +277,7 @@ function Main() {
             <hr></hr>
 
             <label htmlFor="">OfferId:  </label>
-            <input type="text" value={offerId} style={{width: '50%'}} onChange={(e) => {
+            <input type="text" value={offerId} style={{ width: '50%' }} onChange={(e) => {
                 const value = e.target.value;
                 if (value) {
                     setOfferId(parseInt(value, 10));
@@ -320,13 +324,13 @@ function Main() {
                 //     console.error(err);
                 // }
 
-                const contract = new SorobanClient.Contract(tokenSwap.CONTRACT_ID);
-                const res = await executeTransaction(offerorKeypair, 
-                    contract.call('update_offer', 
-                        SorobanClient.xdr.ScVal.scvAddress(SorobanClient.xdr.ScAddress.scAddressTypeAccount(offerorKeypair.xdrPublicKey())),
-                        SorobanClient.xdr.ScVal.scvU32(offerId),
-                        SorobanClient.xdr.ScVal.scvU64(new SorobanClient.xdr.Uint64(newRequestedTokenAmount)),
-                        SorobanClient.xdr.ScVal.scvU64(new SorobanClient.xdr.Uint64(newMinRequestedTokenAmount)),
+                const contract = new StellarSdk.Contract(CONTRACT_ID);
+                const res = await executeTransaction(offerorKeypair,
+                    contract.call('update_offer',
+                        StellarSdk.xdr.ScVal.scvAddress(StellarSdk.xdr.ScAddress.scAddressTypeAccount(offerorKeypair.xdrPublicKey())),
+                        StellarSdk.xdr.ScVal.scvU32(offerId),
+                        StellarSdk.xdr.ScVal.scvU64(new StellarSdk.xdr.Uint64(newRequestedTokenAmount)),
+                        StellarSdk.xdr.ScVal.scvU64(new StellarSdk.xdr.Uint64(newMinRequestedTokenAmount)),
                     ),
                 );
                 console.log('result:', res);
@@ -351,11 +355,11 @@ function Main() {
                 //     console.error(err);
                 // }
 
-                const contract = new SorobanClient.Contract(tokenSwap.CONTRACT_ID);
-                const res = await executeTransaction(offerorKeypair, 
-                    contract.call('close_offer', 
-                        SorobanClient.xdr.ScVal.scvAddress(SorobanClient.xdr.ScAddress.scAddressTypeAccount(offerorKeypair.xdrPublicKey())),
-                        SorobanClient.xdr.ScVal.scvU32(offerId),
+                const contract = new StellarSdk.Contract(CONTRACT_ID);
+                const res = await executeTransaction(offerorKeypair,
+                    contract.call('close_offer',
+                        StellarSdk.xdr.ScVal.scvAddress(StellarSdk.xdr.ScAddress.scAddressTypeAccount(offerorKeypair.xdrPublicKey())),
+                        StellarSdk.xdr.ScVal.scvU32(offerId),
                     ),
                 );
                 console.log('result:', res);
@@ -371,7 +375,7 @@ function Main() {
 
             <h3>  User Side (Acceptor) </h3>
             <label htmlFor="">OfferId:  </label>
-            <input type="text" value={offerId} style={{width: '50%'}} onChange={(e) => {
+            <input type="text" value={offerId} style={{ width: '50%' }} onChange={(e) => {
                 const value = e.target.value;
                 if (value) {
                     setOfferId(parseInt(value, 10));
@@ -408,12 +412,12 @@ function Main() {
                 //     console.error(err);
                 // }
 
-                const contract = new SorobanClient.Contract(tokenSwap.CONTRACT_ID);
-                const res = await executeTransaction(acceptorKeypair, 
-                    contract.call('accept_offer', 
-                        SorobanClient.xdr.ScVal.scvAddress(SorobanClient.xdr.ScAddress.scAddressTypeAccount(acceptorKeypair.xdrPublicKey())),
-                        SorobanClient.xdr.ScVal.scvU32(offerId),
-                        SorobanClient.xdr.ScVal.scvU64(new SorobanClient.xdr.Uint64(amount)),
+                const contract = new StellarSdk.Contract(CONTRACT_ID);
+                const res = await executeTransaction(acceptorKeypair,
+                    contract.call('accept_offer',
+                        StellarSdk.xdr.ScVal.scvAddress(StellarSdk.xdr.ScAddress.scAddressTypeAccount(acceptorKeypair.xdrPublicKey())),
+                        StellarSdk.xdr.ScVal.scvU32(offerId),
+                        StellarSdk.xdr.ScVal.scvU64(new StellarSdk.xdr.Uint64(amount)),
                     ),
                 );
                 console.log('result:', res);
@@ -436,16 +440,34 @@ function Main() {
 
             <button onClick={async () => {
                 try {
-                    const [stkn1, rtkn1, stkn2, rtkn2] = await tokenSwap.check_balances({
-                        offeror: offerorKeypair.publicKey(),
-                        acceptor: acceptorKeypair.publicKey(),
+                    let balances = await tokenSwap.checkBalances({
+                        account: offerorKeypair.publicKey(),
                         send_token: offeredToken,
                         recv_token: requestedToken,
                     });
-                    console.log("Offeror's balance of Offered Token:", stkn1);
-                    console.log("Offeror's balance of Requested Token:", rtkn1);
-                    console.log("Acceptor's balance of Offered Token:", stkn2);
-                    console.log("Acceptor's balance of Requested Token:", rtkn2);
+                    console.log(`[DAVID] offeror = ${balances.result}`);
+                    balances = await tokenSwap.checkBalances({
+                        account: acceptorKeypair.publicKey(),
+                        send_token: offeredToken,
+                        recv_token: requestedToken,
+                    });
+                    console.log(`[DAVID] acceptor = ${balances.result}`);
+                    balances = await tokenSwap.checkBalances({
+                        account: feeKeypair.publicKey(),
+                        send_token: offeredToken,
+                        recv_token: requestedToken,
+                    });
+                    console.log(`[DAVID] fee_acc = ${balances.result}`);
+                    // const [stkn1, rtkn1, stkn2, rtkn2] = await tokenSwap.checkBalances({
+                    //     offeror: offerorKeypair.publicKey(),
+                    //     acceptor: acceptorKeypair.publicKey(),
+                    //     send_token: offeredToken,
+                    //     recv_token: requestedToken,
+                    // });
+                    // console.log("Offeror's balance of Offered Token:", stkn1);
+                    // console.log("Offeror's balance of Requested Token:", rtkn1);
+                    // console.log("Acceptor's balance of Offered Token:", stkn2);
+                    // console.log("Acceptor's balance of Requested Token:", rtkn2);
                 } catch (err) {
                     console.error(err);
                 }

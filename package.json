@@ -16,10 +16,11 @@
     "@ledgerhq/hw-app-str": "^6.27.16",
     "@ledgerhq/hw-transport-webusb": "^6.27.16",
     "@reduxjs/toolkit": "^1.9.5",
+    "@soroban-react/contracts": "^5.3.0",
     "@stellar/design-system": "^0.6.0",
     "@stellar/freighter-api": "^1.5.1",
     "@stellar/frontend-helpers": "^2.1.4",
-    "@soroban-react/contracts": "^5.3.0",
+    "@stellar/stellar-sdk": "^11.3.0",
     "@stellar/wallet-sdk": "^0.9.1",
     "@svgr/webpack": "^8.0.1",
     "@trezor/connect-plugin-stellar": "^9.0.1",
@@ -29,6 +30,7 @@
     "bignumber.js": "^9.1.1",
     "buffer": "^6.0.3",
     "crypto-browserify": "^3.12.0",
+    "dotenv": "^16.4.5",
     "https-browserify": "^1.0.0",
     "lodash": "^4.17.21",
     "moment": "^2.29.4",
@@ -44,6 +46,7 @@
     "stream-browserify": "^3.0.0",
     "stream-http": "^3.2.0",
     "styled-components": "^6.0.0-rc.6",
+    "token-swap": "file:./token-swap/",
     "url": "^0.11.1"
   },
   "scripts": {
