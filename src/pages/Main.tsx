@@ -29,6 +29,40 @@ const server = new StellarSdk.SorobanRpc.Server(
     { allowHttp: true },
 );
 
+async function approve(tokenId: string, amount: number) {
+    const walletAddr = await freighter.getPublicKey();
+    const sourceAcc = await server.getAccount(walletAddr);
+    const contract = new StellarSdk.Contract(tokenId);
+    const transaction = new StellarSdk.TransactionBuilder(sourceAcc, {
+        fee: StellarSdk.BASE_FEE,
+        networkPassphrase: StellarSdk.Networks.FUTURENET,
+    }).addOperation(
+        contract.call("allowance",
+            new StellarSdk.Address(walletAddr).toScVal(),
+            new StellarSdk.Address(CONTRACT_ID).toScVal()),
+    )
+        .setTimeout(180)
+        .build();
+    const resp: any = await server.simulateTransaction(transaction);
+    // const attributes = resp?.result?.retval?.value?.attributes;
+    const attributes = resp?.result?.retval?._value?._attributes;
+    const allowdValStr = String(attributes?.hi?._value) + String(attributes?.lo?._value);
+    const currentAllowed = parseInt(allowdValStr, 10);
+    console.log(`[CRYPTOPRINCE]APPROVE RESP = ${currentAllowed}`);
+
+    if (amount > currentAllowed) {
+        const res = await executeTransaction(
+            contract.call('approve',
+                new StellarSdk.Address(walletAddr).toScVal(),
+                new StellarSdk.Address(CONTRACT_ID).toScVal(),
+                StellarSdk.nativeToScVal(10000000000000, {type: 'i128'}),
+                StellarSdk.xdr.ScVal.scvU32(2000000),
+            ),
+        );
+        console.log(`[CRYPTOPRINCE]approved :: ${res}`);
+    }
+}
+
 async function executeTransaction(operation: StellarSdk.xdr.Operation<StellarSdk.Operation.InvokeHostFunction>): Promise<number> {
     const sourceAcc = await server.getAccount(await freighter.getPublicKey());
     const transaction0 = new StellarSdk.TransactionBuilder(sourceAcc, {
@@ -38,7 +72,7 @@ async function executeTransaction(operation: StellarSdk.xdr.Operation<StellarSdk
         .addMemo(StellarSdk.Memo.text("Testing"))
         .setTimeout(180)
         .build();
-    console.log(`[DAVID] executeTransaction on ${CONTRACT_ID} ...`);
+    console.log(`[CRYPTOPRINCE]executeTransaction on ${CONTRACT_ID} ...`);
     const transaction = await server.prepareTransaction(transaction0);
     // transaction.sign(accKeypair);
     const signedXDR = await freighter.signTransaction(transaction.toXDR(), {
@@ -152,16 +186,16 @@ function Main() {
                 const contract = new StellarSdk.Contract(CONTRACT_ID);
 
                 const res = await executeTransaction(contract.call('allow_token',
-                        new StellarSdk.Address(tokenId).toScVal(),
-                    ));
+                    new StellarSdk.Address(tokenId).toScVal(),
+                ));
                 console.log('result:', res);
             }}> Allow Token </button>
             <button onClick={async () => {
                 const contract = new StellarSdk.Contract(CONTRACT_ID);
 
                 const res = await executeTransaction(contract.call('disallow_token',
-                        StellarSdk.xdr.ScVal.scvAddress(StellarSdk.Address.fromString(tokenId).toScAddress()),
-                    ));
+                    StellarSdk.xdr.ScVal.scvAddress(StellarSdk.Address.fromString(tokenId).toScAddress()),
+                ));
                 console.log('result:', res);
             }}> DisAllow Token</button>
 
@@ -235,6 +269,7 @@ function Main() {
                 // }
 
                 const contract = new StellarSdk.Contract(CONTRACT_ID);
+                await approve(offeredToken, offeredTokenAmount);
                 const res = await executeTransaction(
                     contract.call('create_offer',
                         StellarSdk.xdr.ScVal.scvAddress(StellarSdk.Address.fromString(await freighter.getPublicKey()).toScAddress()),
@@ -402,6 +437,7 @@ function Main() {
                 // }
 
                 const contract = new StellarSdk.Contract(CONTRACT_ID);
+                await approve(REQ_TOKEN, amount);
                 const res = await executeTransaction(
                     contract.call('accept_offer',
                         StellarSdk.xdr.ScVal.scvAddress(StellarSdk.Address.fromString(await freighter.getPublicKey()).toScAddress()),

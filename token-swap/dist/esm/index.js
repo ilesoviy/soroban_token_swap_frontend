@@ -10,7 +10,7 @@ if (typeof window !== 'undefined') {
 export const networks = {
     futurenet: {
         networkPassphrase: "Test SDF Future Network ; October 2022",
-        contractId: "CCQJNFGDMOB6OEASW2NWRHA6HARCJPTIIQT3U7WS5QMI6OD2H4N7RXBL",
+        contractId: "CDN3IVMG5SURVFFY53WW5FUJNOS5TXKLXNLIAEYPKGIAHDUHQ6FRTBLP",
     }
 };
 /**
